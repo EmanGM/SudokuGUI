@@ -3,12 +3,18 @@ import random
 
 class SudokuAI:
     def __init__(self):
+
         self.board = [[0 for i in range(9)] for j in range(9)]
+        self.SolutionBoard = self.board.copy() 
         self.row = 0
         self.column = 0
         self.backupRow = 0
         self.backupColum = 0
         self.genState = 0
+        
+    def setBoard(self, newBoard):
+        self.board = newBoard.copy()
+        self.SolutionBoard = self.board.copy() 
 
 
     def getNumber(self):
@@ -16,36 +22,31 @@ class SudokuAI:
 
     def findEmpty(self, descend=True):
         if descend:
-            self.column += 1
-            if self.column > 8:
-                if self.row > 8:
-                    return False
-                else:
-                    self.row += 1
-                    self.column = 0
-            while self.toSolve[self.row][self.column] != 0:
+            while True:
                 self.column += 1
                 if self.column > 8:
-                    if self.row == 8:
+                    self.row += 1
+                    if self.row > 8:
                         return False
                     else:
-                        self.row += 1
                         self.column = 0
+                if self.toSolve[self.row][self.column] == 0:
+                    return True
         else:
             self.column -= 1
             if self.column < 0:
+                self.row -= 1
                 if self.row < 0:
                     return False
                 else:
-                    self.row -= 1
                     self.column = 8
             while self.toSolve[self.row][self.column] != 0:
                 self.column -= 1
                 if self.column < 0:
+                    self.row -= 1
                     if self.row < 0:
                         return False
                     else:
-                        self.row -= 1
                         self.column = 8
 
         return True
@@ -69,7 +70,7 @@ class SudokuAI:
         
         return True
 
-    def gen(self):
+    def old_gen(self):
 
         if self.genState == 0:
             number = self.getNumber()
@@ -85,6 +86,7 @@ class SudokuAI:
             self.column += 1
             if self.column > 8:
                 if self.row == 8:
+                    self.SolutionBoard = [i[:] for i in self.board]
                     return True
                 else:
                     self.row += 1
@@ -107,6 +109,20 @@ class SudokuAI:
             self.row = self.backupRow
             self.column = self.backupColum
             self.genState = 0
+
+    def gen(self):
+        print("yes")
+        for k in range(3):
+            numbers = [n for n in range(1, 10)]
+            for i in range(3*k, k*3 + 3):
+                for j in range(i, i + 3):
+                    number = random.choice(numbers)
+                    while not self.isValid(number):
+                        numbers.remove(numbers.index(number))
+                        number = random.choice(numbers)
+                    self.board[i][j] = number
+                    return False
+        return True
 
     def solve(self):
 
@@ -142,5 +158,14 @@ class SudokuAI:
                 self.board[self.row][self.column] = number
                 self.genState = 1
 
+
     def removeCells(self):
-        self.board[random.randint(0, 8)][random.randint(0, 8)] = 0
+        rands = (random.randint(0, 8), random.randint(0, 8))
+        if self.board[rands[0]][rands[1]] != 0:
+            self.board[rands[0]][rands[1]] = 0
+        else:
+            self.removeCells()
+
+    def clearAll(self):
+        self.board = [[0 for i in range(9)] for j in range(9)]
+        self.SolutionBoard = self.board.copy()
